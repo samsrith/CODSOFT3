@@ -1,0 +1,96 @@
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+from datetime import datetime
+
+# Main window setup
+root = tk.Tk()
+root.title("To-Do List App")
+root.geometry("450x550")
+root.resizable(False, False)
+root.config(bg="#2196f3")  # Blue background
+
+tasks = []
+
+# Functions
+def update_listbox():
+    listbox.delete(0, tk.END)
+    for i, (task_text, timestamp) in enumerate(tasks):
+        display_text = "{}. {} ({})".format(i + 1, task_text, timestamp)
+        listbox.insert(tk.END, display_text)
+
+def add_task():
+    task = entry.get().strip()
+    if task:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        tasks.append((task, timestamp))
+        entry.delete(0, tk.END)
+        update_listbox()
+    else:
+        messagebox.showwarning("Warning", "Please enter a task.")
+
+def delete_task():
+    try:
+        selected = listbox.curselection()[0]
+        tasks.pop(selected)
+        update_listbox()
+    except IndexError:
+        messagebox.showwarning("Warning", "Please select a task to delete.")
+
+def mark_done():
+    try:
+        selected = listbox.curselection()[0]
+        task_text, timestamp = tasks[selected]
+        if not task_text.startswith("[Done]"):
+            tasks[selected] = ("[Done] " + task_text, timestamp)
+        update_listbox()
+    except IndexError:
+        messagebox.showwarning("Warning", "Please select a task to mark as done.")
+
+def update_task():
+    try:
+        selected = listbox.curselection()[0]
+        old_task, old_time = tasks[selected]
+        new_task = simpledialog.askstring("Update Task", "Edit your task:", initialvalue=old_task)
+        if new_task:
+            tasks[selected] = (new_task.strip(), old_time)
+            update_listbox()
+    except IndexError:
+        messagebox.showwarning("Warning", "Please select a task to update.")
+
+# --- UI Components ---
+container = tk.Frame(root, bg="#bbdefb", bd=1)  # lighter blue
+container.place(relx=0.5, rely=0.05, relwidth=0.9, relheight=0.9, anchor="n")
+
+# Title
+title = tk.Label(container, text="To-Do List", font=("Arial", 20, "bold"), fg="#0d47a1", bg="#bbdefb")
+title.pack(pady=10)
+
+# Entry
+entry = tk.Entry(container, font=("Arial", 13), bd=1, relief="solid", bg="#e3f2fd", fg="#0d47a1")
+entry.pack(pady=(0, 10), padx=10, fill=tk.X)
+
+# Button style
+btn_style = {
+    "font": ("Arial", 11),
+    "bd": 0,
+    "fg": "#ffffff",
+    "padx": 10,
+    "pady": 7,
+    "cursor": "hand2",
+    "relief": "flat"
+}
+
+# Buttons
+tk.Button(container, text="Add Task", bg="#1565c0", activebackground="#0d47a1", command=add_task, **btn_style).pack(pady=4)
+tk.Button(container, text="Update Task", bg="#42a5f5", activebackground="#1e88e5", command=update_task, **btn_style).pack(pady=4)
+tk.Button(container, text="Mark as Done", bg="#00acc1", activebackground="#00838f", command=mark_done, **btn_style).pack(pady=4)
+tk.Button(container, text="Delete Task", bg="#ef5350", activebackground="#c62828", command=delete_task, **btn_style).pack(pady=4)
+
+# Listbox
+listbox = tk.Listbox(container, font=("Arial", 12), width=40, height=10, bd=1,
+                     relief="solid", bg="#e3f2fd", fg="#1a237e",
+                     selectbackground="#90caf9", activestyle="none")
+listbox.pack(pady=10, padx=10)
+
+# Run app
+root.mainloop()
